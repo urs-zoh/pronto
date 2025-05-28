@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  user
+  business
+}
+
+enum UnitType {
+  per_piece
+  per_kg
+  per_packaging
+}
+
+model User {
+  id           Int                @id @default(autoincrement())
+  email        String             @unique
+  role         UserRole
+  name         String
+  zip_code     String
+  created_at   DateTime           @default(now())
+  carts        Cart[]
+  orders       Order[]
+  orderHistory UserOrderHistory[]
+}
+
+model Business {
+  id            Int                    @id @default(autoincrement())
+  email         String                 @unique
+  role          UserRole
+  name          String
+  address       String
+  zip_code      String
+  working_hours Json
+  created_at    DateTime               @default(now())
+  shop          Shop?
+  orderHistory  BusinessOrderHistory[]
+}
+
+model Shop {
+  id         Int      @id @default(autoincrement())
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId Int      @unique
+  created_at DateTime @default(now())
+  items      Item[]
+  orders     Order[]
+}
+
+model Item {
+  id              Int         @id @default(autoincrement())
+  shop            Shop        @relation(fields: [shopId], references: [id])
+  shopId          Int
+  name            String
+  price           Decimal     @db.Decimal(10, 2)
+  unit            UnitType
+  amount_per_unit String
+  stock_quantity  Int
+  created_at      DateTime    @default(now())
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+}
+
+model Cart {
+  id         Int        @id @default(autoincrement())
+  user       User       @relation(fields: [userId], references: [id])
+  userId     Int
+  created_at DateTime   @default(now())
+  cartItems  CartItem[]
+}
+
+model CartItem {
+  id       Int  @id @default(autoincrement())
+  cart     Cart @relation(fields: [cartId], references: [id])
+  cartId   Int
+  item     Item @relation(fields: [itemId], references: [id])
+  itemId   Int
+  quantity Int
+}
+
+model Order {
+  id                   Int                    @id @default(autoincrement())
+  user                 User                   @relation(fields: [userId], references: [id])
+  userId               Int
+  shop                 Shop                   @relation(fields: [shopId], references: [id])
+  shopId               Int
+  total_amount         Decimal                @db.Decimal(10, 2)
+  status               String
+  created_at           DateTime               @default(now())
+  orderItems           OrderItem[]
+  UserOrderHistory     UserOrderHistory[]
+  BusinessOrderHistory BusinessOrderHistory[]
+}
+
+model OrderItem {
+  id             Int      @id @default(autoincrement())
+  order          Order    @relation(fields: [orderId], references: [id])
+  orderId        Int
+  item           Item     @relation(fields: [itemId], references: [id])
+  itemId         Int
+  quantity       Int
+  price_per_unit Decimal  @db.Decimal(10, 2)
+  unit           UnitType
+}
+
+model UserOrderHistory {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    Int
+  created_at DateTime @default(now())
+}
+
+model BusinessOrderHistory {
+  id         Int      @id @default(autoincrement())
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId Int
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    Int
+  created_at DateTime @default(now())
+}
