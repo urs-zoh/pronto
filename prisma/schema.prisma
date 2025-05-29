@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -22,6 +21,7 @@ enum UnitType {
 model User {
   id           Int                @id @default(autoincrement())
   email        String             @unique
+  password     String
   role         UserRole
   name         String
   zip_code     String
@@ -32,16 +32,26 @@ model User {
 }
 
 model Business {
-  id            Int                    @id @default(autoincrement())
-  email         String                 @unique
-  role          UserRole
-  name          String
-  address       String
-  zip_code      String
-  working_hours Json
-  created_at    DateTime               @default(now())
-  shop          Shop?
-  orderHistory  BusinessOrderHistory[]
+  id           Int                    @id @default(autoincrement())
+  email        String                 @unique
+  password     String
+  role         UserRole
+  name         String
+  address      String
+  zip_code     String
+  created_at   DateTime               @default(now())
+  shop         Shop?
+  orderHistory BusinessOrderHistory[]
+  workingHours WorkingHour[] // New relation
+}
+
+model WorkingHour {
+  id         Int      @id @default(autoincrement())
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId Int
+  day        String // e.g. "Monday", "Tuesday"
+  opens_at   String // e.g. "08:00"
+  closes_at  String // e.g. "18:00"
 }
 
 model Shop {
