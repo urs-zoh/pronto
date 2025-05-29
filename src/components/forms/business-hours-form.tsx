@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 import {
   Card,
@@ -45,6 +46,7 @@ export function BusinessHoursForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter();
   const [hours, setHours] = useState<BusinessHour[]>(
     weekdays.map((day) => ({
       day,
@@ -76,7 +78,7 @@ export function BusinessHoursForm({
 
   const isValidTimeRange = (from: string, to: string) => from < to;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const invalidDay = hours.find(
@@ -91,9 +93,40 @@ export function BusinessHoursForm({
       return;
     }
 
-    toast.success("Business hours saved!");
-    console.log("Business hours:", hours);
-    // Proceed to next step...
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Unauthorized. Please log in.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/business/hours", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(hours),
+      });
+
+      if (!res.ok) {
+        const { error } = await res.json();
+        throw new Error(error || "Something went wrong");
+      }
+
+      if (res.ok) {
+        toast.success("Business hours saved!");
+        setTimeout(() => {
+          router.push("/");
+        }, 1000);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
+    }
   };
 
   return (

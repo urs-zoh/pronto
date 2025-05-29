@@ -1,3 +1,5 @@
+"use client";
+
 import { BusinessHoursForm } from "@/components/forms/business-hours-form";
 import Image from "next/image";
 

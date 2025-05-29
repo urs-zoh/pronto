@@ -1,3 +1,5 @@
+"use client";
+
 import { BusinessForm } from "@/components/forms/business-form";
 import Image from "next/image";
 
