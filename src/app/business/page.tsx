@@ -80,7 +80,7 @@ export default function BusinessPage() {
   };
 
   const handleEdit = (productId: number) => {
-    router.push(`/business/products/edit/${productId}`);
+    router.push(`/business/products/${productId}`);
   };
 
   const handleDelete = async (productId: number) => {
