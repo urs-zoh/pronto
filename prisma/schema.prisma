@@ -12,127 +12,134 @@ enum UserRole {
   business
 }
 
-enum UnitType {
-  per_piece
-  per_kg
-  per_packaging
-}
-
 model User {
-  id           Int                @id @default(autoincrement())
-  email        String             @unique
-  password     String
-  role         UserRole
-  name         String
-  zip_code     String
-  created_at   DateTime           @default(now())
-  carts        Cart[]
-  orders       Order[]
-  orderHistory UserOrderHistory[]
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  role       UserRole
+  name       String
+  zip_code   String
+  created_at DateTime @default(now())
+
+  // Relations
+  carts              Cart[]
+  orders             Order[]
+  userOrderHistories UserOrderHistory[]
 }
 
 model Business {
-  id           Int                    @id @default(autoincrement())
-  email        String                 @unique
-  password     String
-  role         UserRole
-  name         String
-  address      String
-  zip_code     String
-  created_at   DateTime               @default(now())
-  shop         Shop?
-  orderHistory BusinessOrderHistory[]
-  workingHours WorkingHour[] // New relation
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  role       UserRole
+  name       String
+  address    String
+  zip_code   String
+  created_at DateTime @default(now())
+
+  // Relations
+  workingHours           WorkingHour[]
+  items                  Item[]
+  orders                 Order[]
+  businessOrderHistories BusinessOrderHistory[]
 }
 
 model WorkingHour {
-  id         Int      @id @default(autoincrement())
-  business   Business @relation(fields: [businessId], references: [id])
+  id         Int    @id @default(autoincrement())
   businessId Int
   day        String // e.g. "Monday", "Tuesday"
   opens_at   String // e.g. "08:00"
   closes_at  String // e.g. "18:00"
-}
 
-model Shop {
-  id         Int      @id @default(autoincrement())
-  business   Business @relation(fields: [businessId], references: [id])
-  businessId Int      @unique
-  created_at DateTime @default(now())
-  items      Item[]
-  orders     Order[]
+  // Relations
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }
 
 model Item {
-  id              Int         @id @default(autoincrement())
-  shop            Shop        @relation(fields: [shopId], references: [id])
-  shopId          Int
+  id              Int      @id @default(autoincrement())
+  businessId      Int
   name            String
-  price           Decimal     @db.Decimal(10, 2)
-  unit            UnitType
-  amount_per_unit String
+  image_url       String
+  price           Decimal  @db.Decimal(10, 2)
+  unit            String
+  amount_per_unit Float
   stock_quantity  Int
-  created_at      DateTime    @default(now())
-  cartItems       CartItem[]
-  orderItems      OrderItem[]
+  created_at      DateTime @default(now())
+
+  // Relations
+  business   Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 }
 
 model Cart {
-  id         Int        @id @default(autoincrement())
-  user       User       @relation(fields: [userId], references: [id])
+  id         Int      @id @default(autoincrement())
   userId     Int
-  created_at DateTime   @default(now())
-  cartItems  CartItem[]
+  created_at DateTime @default(now())
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
 }
 
 model CartItem {
-  id       Int  @id @default(autoincrement())
-  cart     Cart @relation(fields: [cartId], references: [id])
+  id       Int @id @default(autoincrement())
   cartId   Int
-  item     Item @relation(fields: [itemId], references: [id])
   itemId   Int
   quantity Int
+
+  // Relations
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 model Order {
-  id                   Int                    @id @default(autoincrement())
-  user                 User                   @relation(fields: [userId], references: [id])
-  userId               Int
-  shop                 Shop                   @relation(fields: [shopId], references: [id])
-  shopId               Int
-  total_amount         Decimal                @db.Decimal(10, 2)
-  status               String
-  created_at           DateTime               @default(now())
-  orderItems           OrderItem[]
-  UserOrderHistory     UserOrderHistory[]
-  BusinessOrderHistory BusinessOrderHistory[]
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  businessId   Int // Changed from shopId to businessId
+  total_amount Decimal  @db.Decimal(10, 2)
+  status       String
+  created_at   DateTime @default(now())
+
+  // Relations
+  user                   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business               Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  orderItems             OrderItem[]
+  userOrderHistories     UserOrderHistory[]
+  businessOrderHistories BusinessOrderHistory[]
 }
 
 model OrderItem {
-  id             Int      @id @default(autoincrement())
-  order          Order    @relation(fields: [orderId], references: [id])
+  id             Int     @id @default(autoincrement())
   orderId        Int
-  item           Item     @relation(fields: [itemId], references: [id])
   itemId         Int
   quantity       Int
-  price_per_unit Decimal  @db.Decimal(10, 2)
-  unit           UnitType
+  price_per_unit Decimal @db.Decimal(10, 2)
+  unit           String
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  item  Item  @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 model UserOrderHistory {
   id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
   userId     Int
-  order      Order    @relation(fields: [orderId], references: [id])
   orderId    Int
   created_at DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model BusinessOrderHistory {
   id         Int      @id @default(autoincrement())
-  business   Business @relation(fields: [businessId], references: [id])
   businessId Int
-  order      Order    @relation(fields: [orderId], references: [id])
   orderId    Int
   created_at DateTime @default(now())
+
+  // Relations
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
