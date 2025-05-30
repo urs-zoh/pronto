@@ -77,16 +77,37 @@ export default function ProductForm({
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       const base64Image = reader.result as string;
+  //       setImagePreview(base64Image);
+  //       setFormData((prev) => ({ ...prev, image_url: base64Image }));
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64Image = reader.result as string;
-        setImagePreview(base64Image);
-        setFormData((prev) => ({ ...prev, image_url: base64Image }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      setImagePreview(data.imageUrl);
+      setFormData((prev) => ({ ...prev, image_url: data.imageUrl }));
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      alert("Failed to upload image");
     }
   };
 

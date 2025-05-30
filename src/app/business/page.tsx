@@ -14,17 +14,27 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { jwtDecode } from "jwt-decode";
+import Header from "@/components/header";
 
 interface Product {
   id: number;
   shopId: number;
   name: string;
+  image_url?: string;
   price: number;
   unit: string;
   amount_per_unit: number;
   stock_quantity: number;
   created_at: string;
   updated_at: string;
+}
+
+interface Business {
+  email: string;
+  name: string;
+  address: string;
+  zip_code: string;
+  // add other fields as needed
 }
 
 export default function BusinessPage() {
@@ -34,15 +44,16 @@ export default function BusinessPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const router = useRouter();
 
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const [businessId, setBusinessId] = useState<number | null>(null);
+  const [businessData, setBusinessData] = useState<Business | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (token) {
       try {
-        const decoded = jwtDecode<{ id: string }>(token);
-        setBusinessId(decoded.id);
+        const decoded = jwtDecode<{ id: string; email: string }>(token);
+        const idNum = parseInt(decoded.id);
+        if (!isNaN(idNum)) setBusinessId(idNum);
       } catch (err) {
         console.error("Invalid token", err);
       }
@@ -51,9 +62,27 @@ export default function BusinessPage() {
     }
   }, []);
 
+  // Fetch full business data after id is set
+  useEffect(() => {
+    if (!businessId) return;
+
+    async function fetchBusiness() {
+      try {
+        const res = await fetch(`/api/business/${businessId}`);
+        if (!res.ok) throw new Error("Failed to fetch business data");
+        const data: Business = await res.json();
+        setBusinessData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchBusiness();
+  }, [businessId]);
+
   useEffect(() => {
     if (businessId) {
-      fetchProducts(businessId);
+      fetchProducts(businessId.toString());
     }
   }, [businessId]);
 
@@ -90,8 +119,6 @@ export default function BusinessPage() {
 
     try {
       setDeletingId(productId);
-
-      // You'll need to create a DELETE endpoint in your API
       const response = await fetch(`/api/products/${productId}`, {
         method: "DELETE",
       });
@@ -100,7 +127,6 @@ export default function BusinessPage() {
         throw new Error("Failed to delete product");
       }
 
-      // Remove the product from the local state
       setProducts(products.filter((product) => product.id !== productId));
     } catch (err) {
       console.error("Error deleting product:", err);
@@ -163,100 +189,110 @@ export default function BusinessPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Products</h1>
-        <Button onClick={handleCreateNew}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Product
-        </Button>
-      </div>
+    <>
+      <Header
+        name={businessData?.email || "Business Dashboard"}
+        cartItemCount={undefined}
+        shopLink="/business/"
+        historyLink="/business/orders"
+        profileLink={`/business/profile/${businessId}`}
+        shopName={businessData?.name || "Your Shop"}
+      />
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Products</h1>
+          <Button onClick={handleCreateNew}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Product
+          </Button>
+        </div>
 
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3 sm:grid-cols-2">
-        {/* Product Cards */}
-        {products.map((product) => {
-          const stockStatus = getStockStatus(product.stock_quantity);
+        <div className="grid auto-rows-min gap-4 md:grid-cols-3 sm:grid-cols-2">
+          {/* Product Cards */}
+          {products.map((product) => {
+            const stockStatus = getStockStatus(product.stock_quantity);
 
-          return (
-            <Card key={product.id} className="w-full max-w-sm">
-              <CardHeader className="p-0">
-                <div className="relative">
-                  <Image
-                    src="/placeholder.svg?height=200&width=300"
-                    alt={product.name}
-                    width={300}
-                    height={200}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  <Badge
-                    variant="secondary"
-                    className={`absolute top-2 right-2 ${stockStatus.className}`}>
-                    <Package className="w-3 h-3 mr-1" />
-                    {stockStatus.label}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-semibold text-lg leading-tight">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Stock: {product.stock_quantity} units
-                  </p>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
+            return (
+              <Card key={product.id} className="w-full max-w-sm">
+                <CardHeader className="p-0">
+                  <div className="relative">
+                    <Image
+                      src={product.image_url || "/placeholder.png"}
+                      alt={product.name}
+                      width={300}
+                      height={200}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                    />
+                    <Badge
+                      variant="secondary"
+                      className={`absolute top-2 right-2 ${stockStatus.className}`}>
+                      <Package className="w-3 h-3 mr-1" />
+                      {stockStatus.label}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
                   <div>
-                    <p className="text-2xl font-bold text-green-600">
-                      {formatPrice(product.price)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {product.unit} ({product.amount_per_unit} per unit)
+                    <h3 className="font-semibold text-lg leading-tight">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Stock: {product.stock_quantity} units
                     </p>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter className="p-4 pt-0 flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => handleEdit(product.id)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => handleDelete(product.id)}
-                  disabled={deletingId === product.id}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  {deletingId === product.id ? "Deleting..." : "Delete"}
-                </Button>
-              </CardFooter>
-            </Card>
-          );
-        })}
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-green-600">
+                        {formatPrice(product.price)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {product.unit} ({product.amount_per_unit} per unit)
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="p-4 pt-0 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleEdit(product.id)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleDelete(product.id)}
+                    disabled={deletingId === product.id}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deletingId === product.id ? "Deleting..." : "Delete"}
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
 
-        {/* Empty State */}
-        {products.length === 0 && !loading && (
-          <div className="col-span-full flex items-center justify-center h-64">
-            <div className="text-center">
-              <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold mb-2">No products yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Get started by creating your first product
-              </p>
-              <Button onClick={handleCreateNew}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Product
-              </Button>
+          {/* Empty State */}
+          {products.length === 0 && !loading && (
+            <div className="col-span-full flex items-center justify-center h-64">
+              <div className="text-center">
+                <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold mb-2">No products yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Get started by creating your first product
+                </p>
+                <Button onClick={handleCreateNew}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Product
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

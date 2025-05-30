@@ -33,9 +33,9 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         name,
-        role: body.role, // Make sure to provide this in the request body
-        address: body.address, // Make sure to provide this in the request body
-        zip_code: body.zip_code, // Make sure to provide this in the request body
+        role: body.role,
+        address: body.address,
+        zip_code: body.zip_code,
         ...(unitType ? { unitType } : {}),
       },
     });
@@ -45,8 +45,8 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         name,
-        role: body.role, // Make sure to provide this in the request body
-        zip_code: body.zip_code, // Make sure to provide this in the request body
+        role: body.role,
+        zip_code: body.zip_code,
       },
     });
   }
