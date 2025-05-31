@@ -12,7 +12,7 @@ import {
   EyeOff,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignOutButton } from "@/components/sign-out";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 interface Business {
   id: number;
   email: string;
@@ -34,8 +34,16 @@ export default function BusinessProfilePage() {
   const [showPassword, setShowPassword] = useState(false);
   const [businessData, setBusinessData] = useState<Business | null>(null);
 
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
+  const zipCodeRef = useRef<HTMLInputElement>(null);
+
   const params = useParams();
   const businessId = params?.id;
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -55,6 +63,64 @@ export default function BusinessProfilePage() {
     fetchProduct();
   }, [businessId]);
 
+  const handleSave = async () => {
+    console.log("Saving business profile...");
+    if (!businessId) return;
+
+    const updatedData = {
+      name: nameRef.current?.value,
+      email: emailRef.current?.value,
+      password: passwordRef.current?.value || undefined,
+      address: addressRef.current?.value,
+      zip_code: zipCodeRef.current?.value,
+    };
+
+    try {
+      const res = await fetch(`/api/business/${businessId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!res.ok) throw new Error("Failed to update business profile");
+
+      const updatedBusiness = await res.json();
+      setBusinessData(updatedBusiness);
+      alert("Business profile updated successfully!");
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Error updating profile.");
+    }
+  };
+
+  async function handleDelete(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ): Promise<void> {
+    event.preventDefault();
+    if (!businessId) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your business profile? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/business/${businessId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete business profile");
+
+      alert("Business profile deleted successfully!");
+      localStorage.removeItem("token");
+      router.push("/login");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Error deleting profile.");
+    }
+  }
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -107,6 +173,7 @@ export default function BusinessProfilePage() {
               <div className="relative">
                 <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
+                  ref={nameRef}
                   id="name"
                   placeholder="Enter business name"
                   defaultValue={businessData?.name}
@@ -121,6 +188,7 @@ export default function BusinessProfilePage() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
+                  ref={emailRef}
                   id="email"
                   type="email"
                   placeholder="business@example.com"
@@ -136,6 +204,7 @@ export default function BusinessProfilePage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
+                  ref={passwordRef}
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
@@ -174,6 +243,7 @@ export default function BusinessProfilePage() {
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
+                  ref={addressRef}
                   id="address"
                   placeholder="Enter complete address"
                   defaultValue={businessData?.address}
@@ -186,6 +256,7 @@ export default function BusinessProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="zip_code">ZIP Code</Label>
               <Input
+                ref={zipCodeRef}
                 id="zip_code"
                 placeholder="Enter ZIP code"
                 defaultValue={businessData?.zip_code}
@@ -225,7 +296,7 @@ export default function BusinessProfilePage() {
         {/* Action Buttons */}
         <div className="flex gap-4 justify-end">
           <SignOutButton />
-          <Button variant="destructive" size="lg">
+          <Button variant="destructive" size="lg" onClick={handleDelete}>
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Profile
           </Button>
@@ -233,7 +304,7 @@ export default function BusinessProfilePage() {
             <X className="w-4 h-4 mr-2" />
             Cancel Changes
           </Button>
-          <Button size="lg">
+          <Button size="lg" onClick={handleSave}>
             <Save className="w-4 h-4 mr-2" />
             Save Profile
           </Button>
