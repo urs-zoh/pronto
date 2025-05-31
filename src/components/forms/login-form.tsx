@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +23,7 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [userType, setUserType] = useState<"user" | "business">("user");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +33,7 @@ export function LoginForm({
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, type: "user" }),
+      body: JSON.stringify({ email, password, type: userType }),
     });
 
     const data = await res.json();
@@ -43,8 +45,35 @@ export function LoginForm({
 
     localStorage.setItem("token", data.token);
 
-    router.push("/");
+    // Redirect based on user type
+    if (data.user.type === "business") {
+      router.push("/business");
+    } else {
+      router.push("/");
+    }
   };
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError("");
+
+  //   const res = await fetch("/api/auth/login", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ email, password, type: userType }),
+  //   });
+
+  //   const data = await res.json();
+
+  //   if (!res.ok) {
+  //     setError(data.error || "Login failed");
+  //     return;
+  //   }
+
+  //   localStorage.setItem("token", data.token);
+
+  //   router.push("/");
+  // };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -70,9 +99,7 @@ export function LoginForm({
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -81,7 +108,25 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+
+              {/* Toggle Switch */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="user-type-switch">
+                  {userType === "user"
+                    ? "Personal Account"
+                    : "Business Account"}
+                </Label>
+                <Switch
+                  id="user-type-switch"
+                  checked={userType === "business"}
+                  onCheckedChange={(checked) =>
+                    setUserType(checked ? "business" : "user")
+                  }
+                />
+              </div>
+
               {error && <p className="text-sm text-red-500">{error}</p>}
+
               <Button type="submit" className="w-full">
                 Login
               </Button>

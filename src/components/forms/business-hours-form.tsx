@@ -117,7 +117,7 @@ export function BusinessHoursForm({
       if (res.ok) {
         toast.success("Business hours saved!");
         setTimeout(() => {
-          router.push("/");
+          router.push("/business");
         }, 1000);
       }
     } catch (error: unknown) {

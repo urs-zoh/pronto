@@ -23,12 +23,12 @@ export async function POST(req: Request) {
   }
 
   if (!user) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return NextResponse.json({ error: "Invalid email" }, { status: 401 });
   }
 
   const isValid = await comparePassword(password, user.password);
   if (!isValid) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
   const token = generateToken({ id: user.id, email: user.email, type });

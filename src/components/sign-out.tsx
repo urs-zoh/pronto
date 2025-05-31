@@ -7,8 +7,8 @@ export function SignOutButton() {
   const router = useRouter();
 
   const handleSignOut = () => {
-    localStorage.removeItem("token"); // Or sessionStorage, if you use that
-    router.push("/login"); // Redirect to login or landing page
+    localStorage.removeItem("token");
+    router.push("/login");
   };
 
   return (
