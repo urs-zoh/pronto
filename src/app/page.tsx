@@ -1,19 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// import Header from "@/components/header";
-
-// export default function LoginPage() {
-//   return (
-//     <Header
-//       name={businessData?.email || "Business Dashboard"}
-//       cartItemCount={undefined}
-//       shopLink="/business/"
-//       historyLink="/business/orders"
-//       profileLink={`/business/profile/${businessId}`}
-//       shopName={businessData?.name || "Your Shop"}
-//     />
-//   );
-// }
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
+import ProductCardWithCart from "@/components/product-card-user";
 
 interface User {
   id: number;
@@ -125,36 +111,18 @@ export default function UserProfilePage() {
         profileLink={`/user/profile/${userId}`}
         shopName={userData.name}
       />
-      <main className="max-w-3xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
-
-        <div className="space-y-4 bg-white p-6 rounded-lg shadow">
-          <div>
-            <label className="block font-semibold mb-1">Name</label>
-            <p>{userData.name}</p>
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Email</label>
-            <p>{userData.email}</p>
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Zip Code</label>
-            <p>{userData.zip_code}</p>
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Role</label>
-            <p>{userData.role}</p>
-          </div>
-
-          <div>
-            <label className="block font-semibold mb-1">Member Since</label>
-            <p>{new Date(userData.created_at).toLocaleDateString()}</p>
-          </div>
-        </div>
-      </main>
+      <ProductCardWithCart
+        id={0}
+        name={""}
+        image_url={""}
+        price={0}
+        unit={""}
+        amount_per_unit={0}
+        stock_quantity={0}
+        in_stock={false}
+        cart_quantity={0}
+        business={undefined}
+      />
     </>
   );
 }
