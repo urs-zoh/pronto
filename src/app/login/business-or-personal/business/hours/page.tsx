@@ -1,6 +1,6 @@
 "use client";
 
-import { BusinessHoursForm } from "@/components/forms/business-hours-form";
+import { BusinessHoursForm } from "@/components/auth/business/business-hours-form";
 import Image from "next/image";
 
 export default function LoginPage() {

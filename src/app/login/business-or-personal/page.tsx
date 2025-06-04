@@ -1,6 +1,6 @@
 "use client";
 
-import { BusinessOrPersonalForm } from "@/components/forms/business-or-personal-form";
+import { BusinessOrPersonalForm } from "@/components/auth/business/business-or-personal-form";
 import Image from "next/image";
 
 export default function LoginPage() {

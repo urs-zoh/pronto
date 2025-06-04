@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-import Header from "@/components/header";
+import Header from "@/components/ui/header";
 import { Button } from "@/components/ui/button";
-import ProductCardWithCart from "@/components/product-card-user";
+import ProductCardWithCart from "@/components/user/product-card-user";
 
 interface User {
   id: number;

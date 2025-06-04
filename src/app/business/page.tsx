@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { jwtDecode } from "jwt-decode";
-import Header from "@/components/header";
+import Header from "@/components/ui/header";
 
 interface Product {
   id: number;

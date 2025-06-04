@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// import { PrismaClient } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
 import { NextRequest, NextResponse } from "next/server";
-
-// const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization");

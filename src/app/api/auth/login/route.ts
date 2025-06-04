@@ -1,10 +1,7 @@
-// import { PrismaClient } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { comparePassword } from "@/lib/auth";
 import { generateToken } from "@/lib/jwt";
 import { NextResponse } from "next/server";
-
-// const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   const body = await req.json();

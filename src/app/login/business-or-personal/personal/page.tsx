@@ -1,6 +1,6 @@
 "use client";
 
-import { PersonalForm } from "@/components/forms/personal-form";
+import { PersonalForm } from "@/components/auth/personal/personal-form";
 import Image from "next/image";
 
 export default function LoginPage() {

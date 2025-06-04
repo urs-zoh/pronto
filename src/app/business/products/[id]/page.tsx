@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import ProductForm from "@/components/forms/product-form";
+import ProductForm from "@/components/business/product-form";
 import toast, { Toaster } from "react-hot-toast";
 
 interface Product {

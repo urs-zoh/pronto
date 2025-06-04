@@ -1,6 +1,6 @@
 "use client";
 
-import { BusinessForm } from "@/components/forms/business-form";
+import { BusinessForm } from "@/components/auth/business/business-form";
 import Image from "next/image";
 
 export default function LoginPage() {
