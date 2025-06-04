@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
@@ -17,11 +16,40 @@ interface User {
   created_at: string;
 }
 
+interface WorkingHour {
+  opens_at: string;
+  closes_at: string;
+}
+
+interface BusinessInfo {
+  id: number;
+  name: string;
+  address: string;
+  zip_code: string;
+  working_hours_today: WorkingHour | null;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+  unit: string;
+  amount_per_unit: number;
+  stock_quantity: number;
+  in_stock: boolean;
+  cart_quantity: number;
+  business: BusinessInfo;
+}
+
 export default function UserProfilePage() {
   const [userId, setUserId] = useState<number | null>(null);
   const [userData, setUserData] = useState<User | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cartItemCount, setCartItemCount] = useState<number>(0);
   const router = useRouter();
 
   // Extract user ID from JWT token stored in localStorage
@@ -32,6 +60,7 @@ export default function UserProfilePage() {
       setLoading(false);
       return;
     }
+
     try {
       const decoded = jwtDecode<{ id: string }>(token);
       const idNum = parseInt(decoded.id);
@@ -50,6 +79,7 @@ export default function UserProfilePage() {
     async function fetchUser() {
       setLoading(true);
       setError(null);
+
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(`/api/user/${userId}`, {
@@ -58,6 +88,7 @@ export default function UserProfilePage() {
             Authorization: `Bearer ${token}`,
           },
         });
+
         if (!res.ok) {
           if (res.status === 404) {
             throw new Error("User not found.");
@@ -67,6 +98,7 @@ export default function UserProfilePage() {
             throw new Error("Failed to fetch user data.");
           }
         }
+
         const data: User = await res.json();
         setUserData(data);
       } catch (err) {
@@ -78,6 +110,110 @@ export default function UserProfilePage() {
 
     fetchUser();
   }, [userId]);
+
+  // Fetch products when userId is ready
+  useEffect(() => {
+    if (!userId) return;
+
+    async function fetchProducts() {
+      setProductsLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/products/shop", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "user-id": userId!.toString(),
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch products.");
+        }
+
+        const productsData: Product[] = await res.json();
+        setProducts(productsData);
+
+        // Calculate total cart items
+        const totalCartItems = productsData.reduce((total, product) => {
+          return total + product.cart_quantity;
+        }, 0);
+        setCartItemCount(totalCartItems);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        setProductsLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, [userId]);
+
+  // Handle adding to cart
+  const handleAddToCart = async (productId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          itemId: productId,
+          quantity: 1,
+        }),
+      });
+
+      if (res.ok) {
+        // Update the product's cart quantity locally
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === productId
+              ? { ...product, cart_quantity: product.cart_quantity + 1 }
+              : product
+          )
+        );
+        setCartItemCount((prevCount) => prevCount + 1);
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+    }
+  };
+
+  // Handle removing all from cart
+  const handleRemoveAllFromCart = async (productId: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/cart/remove", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          itemId: productId,
+        }),
+      });
+
+      if (res.ok) {
+        // Update the product's cart quantity locally
+        const productToUpdate = products.find((p) => p.id === productId);
+        const removedQuantity = productToUpdate?.cart_quantity || 0;
+
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === productId
+              ? { ...product, cart_quantity: 0 }
+              : product
+          )
+        );
+        setCartItemCount((prevCount) => prevCount - removedQuantity);
+      }
+    } catch (err) {
+      console.error("Error removing from cart:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -98,31 +234,63 @@ export default function UserProfilePage() {
   }
 
   if (!userData) {
-    return null; // or some fallback
+    return null;
   }
 
   return (
     <>
       <Header
         name={userData.email}
-        cartItemCount={undefined}
+        cartItemCount={cartItemCount}
         shopLink="/"
         historyLink="/orders"
         profileLink={`/user/profile/${userId}`}
         shopName={userData.name}
       />
-      <ProductCardWithCart
-        id={0}
-        name={""}
-        image_url={""}
-        price={0}
-        unit={""}
-        amount_per_unit={0}
-        stock_quantity={0}
-        in_stock={false}
-        cart_quantity={0}
-        business={undefined}
-      />
+
+      <div className="container mx-auto p-4">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-2">Welcome, {userData.name}!</h1>
+          <p className="text-muted-foreground">
+            Browse available products below
+          </p>
+        </div>
+
+        {productsLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+            <p className="text-muted-foreground ml-4">Loading products...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {products.length > 0 ? (
+              products.map((product) => (
+                <ProductCardWithCart
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  image_url={product.image_url}
+                  price={product.price}
+                  unit={product.unit}
+                  amount_per_unit={product.amount_per_unit}
+                  stock_quantity={product.stock_quantity}
+                  in_stock={product.in_stock}
+                  cart_quantity={product.cart_quantity}
+                  business={product.business}
+                  onAddToCart={handleAddToCart}
+                  onRemoveAllFromCart={handleRemoveAllFromCart}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-muted-foreground">
+                  No products available at the moment.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 }
