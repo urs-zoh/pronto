@@ -237,7 +237,7 @@ export default function BusinessPage() {
                       {product.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Stock: {product.stock_quantity} units
+                      In stock: {product.stock_quantity}
                     </p>
                   </div>
                   <Separator />
@@ -247,7 +247,7 @@ export default function BusinessPage() {
                         {formatPrice(product.price)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {product.unit} ({product.amount_per_unit} per unit)
+                        {product.amount_per_unit} {product.unit}
                       </p>
                     </div>
                   </div>

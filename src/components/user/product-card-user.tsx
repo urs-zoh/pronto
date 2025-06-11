@@ -1,4 +1,12 @@
-import { Plus, MapPin, Clock, Package, ShoppingCart, X } from "lucide-react";
+import {
+  Plus,
+  MapPin,
+  Clock,
+  Package,
+  ShoppingCart,
+  X,
+  Map,
+} from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,12 +77,6 @@ export default function ProductCardWithCart({
     }
   };
 
-  // const handleRemoveFromCart = () => {
-  //   if (onRemoveFromCart) {
-  //     onRemoveFromCart(id);
-  //   }
-  // };
-
   const handleRemoveAllFromCart = () => {
     if (onRemoveAllFromCart) {
       onRemoveAllFromCart(id);
@@ -144,10 +146,11 @@ export default function ProductCardWithCart({
           <h4 className="font-medium text-sm">{business.name}</h4>
           <div className="flex items-start gap-2 text-xs text-muted-foreground">
             <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
-            <div>
-              <p>{business.address}</p>
-              <p>{business.zip_code}</p>
-            </div>
+            <span>{business.address}</span>
+          </div>
+          <div className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Map className="w-3 h-3 mt-0.5 flex-shrink-0" />
+            <span>{business.zip_code}</span>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="w-3 h-3 flex-shrink-0" />

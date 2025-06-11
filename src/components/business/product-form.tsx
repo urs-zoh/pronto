@@ -77,18 +77,6 @@ export default function ProductForm({
     }));
   };
 
-  // const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       const base64Image = reader.result as string;
-  //       setImagePreview(base64Image);
-  //       setFormData((prev) => ({ ...prev, image_url: base64Image }));
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -190,22 +178,16 @@ export default function ProductForm({
               {/* Price and Unit */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      $
-                    </span>
-                    <Input
-                      name="price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      className="pl-8"
-                      required
-                    />
-                  </div>
+                  <Label>Amount</Label>
+                  <Input
+                    name="amount_per_unit"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={formData.amount_per_unit}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Price Unit</Label>
@@ -221,16 +203,22 @@ export default function ProductForm({
 
               {/* Amount per Unit */}
               <div className="space-y-2">
-                <Label>Amount per Unit</Label>
-                <Input
-                  name="amount_per_unit"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_per_unit}
-                  onChange={handleInputChange}
-                  required
-                />
+                <Label>Price</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    $
+                  </span>
+                  <Input
+                    name="price"
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    className="pl-8"
+                    required
+                  />
+                </div>
               </div>
 
               {/* Stock Quantity */}

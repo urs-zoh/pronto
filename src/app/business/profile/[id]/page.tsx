@@ -300,7 +300,7 @@ export default function BusinessProfilePage() {
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Profile
           </Button>
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" onClick={() => router.back()}>
             <X className="w-4 h-4 mr-2" />
             Cancel Changes
           </Button>

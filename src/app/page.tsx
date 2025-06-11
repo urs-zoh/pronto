@@ -249,12 +249,39 @@ export default function UserProfilePage() {
       />
 
       <div className="container mx-auto p-4">
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">Welcome, {userData.name}!</h1>
           <p className="text-muted-foreground">
             Browse available products below
           </p>
-        </div>
+        </div> */}
+
+        {/* <div className="flex flex-wrap gap-4 mb-6">
+          <select
+            onChange={(e) => setSortOption(e.target.value)}
+            value={sortOption}
+            className="border rounded p-2">
+            <option value="none">Sort by</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+
+          <input
+            type="text"
+            placeholder="Filter by Shop Name"
+            value={shopFilter}
+            onChange={(e) => setShopFilter(e.target.value)}
+            className="border rounded p-2"
+          />
+
+          <input
+            type="text"
+            placeholder="Filter by ZIP Code"
+            value={zipFilter}
+            onChange={(e) => setZipFilter(e.target.value)}
+            className="border rounded p-2"
+          />
+        </div> */}
 
         {productsLoading ? (
           <div className="flex justify-center items-center py-8">
