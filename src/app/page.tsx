@@ -6,15 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import Header from "@/components/ui/header";
 import { Button } from "@/components/ui/button";
 import ProductCardWithCart from "@/components/user/product-card-user";
-
-interface User {
-  id: number;
-  email: string;
-  name: string;
-  zip_code: string;
-  role: string;
-  created_at: string;
-}
+import { User } from "@/lib/types";
 
 interface WorkingHour {
   opens_at: string;

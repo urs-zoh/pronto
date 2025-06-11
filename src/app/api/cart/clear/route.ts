@@ -6,6 +6,7 @@ export async function DELETE(req: Request) {
   const { userId } = data;
 
   if (!userId) {
+    console.error("Missing userId in request");
     return NextResponse.json({ error: "Missing userId" }, { status: 400 });
   }
 
@@ -16,6 +17,7 @@ export async function DELETE(req: Request) {
     });
 
     if (!cart) {
+      console.error("Cart not found for userId:", userId);
       return NextResponse.json({ error: "Cart not found" }, { status: 404 });
     }
 
