@@ -44,6 +44,7 @@ export function LoginForm({
     }
 
     localStorage.setItem("token", data.token);
+    document.cookie = `token=${data.token}; path=/; max-age=604800`;
 
     // Redirect based on user type
     if (data.user.type === "business") {

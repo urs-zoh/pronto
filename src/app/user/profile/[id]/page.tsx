@@ -88,6 +88,8 @@ export default function UserProfilePage() {
       if (!res.ok) throw new Error("Failed to delete user profile");
       alert("User profile deleted successfully!");
       localStorage.removeItem("token");
+      document.cookie =
+        "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       router.push("/login");
     } catch (error) {
       console.error("Delete error:", error);

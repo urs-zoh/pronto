@@ -78,6 +78,7 @@ export function PersonalForm({
       if (!loginRes.ok) throw new Error(loginData.error || "Login failed");
 
       localStorage.setItem("token", loginData.token);
+      document.cookie = `token=${loginData.token}; path=/; max-age=604800`;
 
       // ✅ Navigate to home
       router.push("/");

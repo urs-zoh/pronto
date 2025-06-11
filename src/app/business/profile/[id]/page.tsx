@@ -115,6 +115,8 @@ export default function BusinessProfilePage() {
 
       alert("Business profile deleted successfully!");
       localStorage.removeItem("token");
+      document.cookie =
+        "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       router.push("/login");
     } catch (err) {
       console.error("Delete error:", err);

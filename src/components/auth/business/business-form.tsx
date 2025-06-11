@@ -78,6 +78,7 @@ export function BusinessForm({
 
       if (loginRes.ok) {
         localStorage.setItem("token", loginData.token);
+        document.cookie = `token=${loginData.token}; path=/; max-age=604800`;
         router.push("/login/business-or-personal/business/hours");
       }
     } catch (err: unknown) {
