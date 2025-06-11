@@ -278,7 +278,7 @@ export default function UserProfilePage() {
         name={userData.email}
         cartItemCount={cartItemCount}
         shopLink="/"
-        historyLink="/orders"
+        historyLink="/user/history"
         profileLink={`/user/profile/${userId}`}
         shopName={userData.name}
       />
