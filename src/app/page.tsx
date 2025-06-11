@@ -50,6 +50,16 @@ export default function UserProfilePage() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cartItemCount, setCartItemCount] = useState<number>(0);
+
+  const [sortByPrice, setSortByPrice] = useState<"asc" | "desc" | "none">(
+    "none"
+  );
+  const [sortByStock, setSortByStock] = useState<"asc" | "desc" | "none">(
+    "none"
+  );
+  const [shopFilter, setShopFilter] = useState("");
+  const [zipFilter, setZipFilter] = useState("");
+
   const router = useRouter();
 
   // Extract user ID from JWT token stored in localStorage
@@ -160,6 +170,7 @@ export default function UserProfilePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          userId: userId,
           itemId: productId,
           quantity: 1,
         }),
@@ -192,6 +203,7 @@ export default function UserProfilePage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          userId: userId,
           itemId: productId,
         }),
       });
@@ -237,6 +249,37 @@ export default function UserProfilePage() {
     return null;
   }
 
+  // Filter and sort products based on user input
+  const filteredAndSortedProducts = products
+    .filter((product) => {
+      const shopMatches = product.business.name
+        .toLowerCase()
+        .includes(shopFilter.toLowerCase());
+      const zipMatches = product.business.zip_code
+        .toString()
+        .includes(zipFilter);
+      return shopMatches && zipMatches;
+    })
+    .sort((a, b) => {
+      // First: price sorting
+      if (sortByPrice !== "none") {
+        const priceDiff = a.price - b.price;
+        if (priceDiff !== 0) {
+          return sortByPrice === "asc" ? priceDiff : -priceDiff;
+        }
+      }
+
+      // Then: stock sorting
+      if (sortByStock !== "none") {
+        const stockDiff = a.stock_quantity - b.stock_quantity;
+        if (stockDiff !== 0) {
+          return sortByStock === "asc" ? stockDiff : -stockDiff;
+        }
+      }
+
+      return 0; // No sorting applied or both equal
+    });
+
   return (
     <>
       <Header
@@ -249,22 +292,30 @@ export default function UserProfilePage() {
       />
 
       <div className="container mx-auto p-4">
-        {/* <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Welcome, {userData.name}!</h1>
-          <p className="text-muted-foreground">
-            Browse available products below
-          </p>
-        </div> */}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex gap-4 mb-4">
+            <select
+              value={sortByPrice}
+              onChange={(e) =>
+                setSortByPrice(e.target.value as "asc" | "desc" | "none")
+              }
+              className="border rounded p-2">
+              <option value="none">Sort by Price</option>
+              <option value="asc">Low to High</option>
+              <option value="desc">High to Low</option>
+            </select>
 
-        {/* <div className="flex flex-wrap gap-4 mb-6">
-          <select
-            onChange={(e) => setSortOption(e.target.value)}
-            value={sortOption}
-            className="border rounded p-2">
-            <option value="none">Sort by</option>
-            <option value="price-asc">Price: Low to High</option>
-            <option value="price-desc">Price: High to Low</option>
-          </select>
+            <select
+              value={sortByStock}
+              onChange={(e) =>
+                setSortByStock(e.target.value as "asc" | "desc" | "none")
+              }
+              className="border rounded p-2">
+              <option value="none">Sort by Stock</option>
+              <option value="asc">Low to High</option>
+              <option value="desc">High to Low</option>
+            </select>
+          </div>
 
           <input
             type="text"
@@ -281,7 +332,7 @@ export default function UserProfilePage() {
             onChange={(e) => setZipFilter(e.target.value)}
             className="border rounded p-2"
           />
-        </div> */}
+        </div>
 
         {productsLoading ? (
           <div className="flex justify-center items-center py-8">
@@ -291,7 +342,7 @@ export default function UserProfilePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {products.length > 0 ? (
-              products.map((product) => (
+              filteredAndSortedProducts.map((product) => (
                 <ProductCardWithCart
                   key={product.id}
                   id={product.id}
